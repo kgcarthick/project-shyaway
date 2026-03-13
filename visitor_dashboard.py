@@ -6,6 +6,7 @@ from plotly.subplots import make_subplots
 import json
 import os
 import re
+from sqlalchemy import create_engine
 
 st.set_page_config(
     page_title="ShyAway - Target User Dashboard",
@@ -135,15 +136,23 @@ div[data-testid="stDownloadButton"] button:hover {
 """, unsafe_allow_html=True)
 
 # ── Data Loading ─────────────────────────────────────────────────────────────
-DATA_PATH = os.path.join(os.path.dirname(__file__), "input-data", "visitor04052025.csv")
+DB_HOST     = "localhost"
+DB_PORT     = 3306
+DB_USER     = "root"
+DB_PASSWORD = "Kaamna!123321"   # ← update this
+DB_NAME     = "shyaway_db"
+DB_TABLE    = "visitor_small"
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv(DATA_PATH, low_memory=False, on_bad_lines="skip")
+    engine = create_engine(
+        f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
+    df = pd.read_sql(f"SELECT * FROM {DB_TABLE}", con=engine)
     df.columns = df.columns.str.strip()
 
     # Parse visit_time — handles both "YYYY-MM-DD HH:MM:SS" and "DD-MM-YYYY HH:MM"
-    df["visit_time"] = pd.to_datetime(df["visit_time"], errors="coerce")
+    df["visit_time"] = pd.to_datetime(df["visit_time"], dayfirst=True, errors="coerce")
     df["visit_date"] = df["visit_time"].dt.date
     df["visit_hour"] = df["visit_time"].dt.hour
     df["visit_dow"]  = df["visit_time"].dt.day_name()
