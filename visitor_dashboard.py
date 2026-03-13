@@ -6,7 +6,6 @@ from plotly.subplots import make_subplots
 import json
 import os
 import re
-from sqlalchemy import create_engine
 
 st.set_page_config(
     page_title="ShyAway - Target User Dashboard",
@@ -136,19 +135,11 @@ div[data-testid="stDownloadButton"] button:hover {
 """, unsafe_allow_html=True)
 
 # ── Data Loading ─────────────────────────────────────────────────────────────
-DB_HOST     = st.secrets["DB_HOST"]
-DB_PORT     = st.secrets["DB_PORT"]
-DB_USER     = st.secrets["DB_USER"]
-DB_PASSWORD = st.secrets["DB_PASSWORD"]
-DB_NAME     = st.secrets["DB_NAME"]
-DB_TABLE    = "visitor_small"
+DATA_PATH = os.path.join(os.path.dirname(__file__), "input-data", "visitor_small.csv")
 
 @st.cache_data
 def load_data():
-    engine = create_engine(
-        f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    )
-    df = pd.read_sql(f"SELECT * FROM {DB_TABLE}", con=engine)
+    df = pd.read_csv(DATA_PATH, low_memory=False, on_bad_lines="skip")
     df.columns = df.columns.str.strip()
 
     # Parse visit_time — handles both "YYYY-MM-DD HH:MM:SS" and "DD-MM-YYYY HH:MM"
