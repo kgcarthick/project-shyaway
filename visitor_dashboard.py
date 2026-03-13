@@ -135,7 +135,7 @@ div[data-testid="stDownloadButton"] button:hover {
 """, unsafe_allow_html=True)
 
 # ── Data Loading ─────────────────────────────────────────────────────────────
-DATA_PATH = os.path.join(os.path.dirname(__file__), "input-data", "visitor_small.csv")
+DATA_PATH = os.path.join(os.path.dirname(__file__), "input-data", "visitor04052025.csv")
 
 @st.cache_data
 def load_data():
