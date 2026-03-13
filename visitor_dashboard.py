@@ -136,11 +136,11 @@ div[data-testid="stDownloadButton"] button:hover {
 """, unsafe_allow_html=True)
 
 # ── Data Loading ─────────────────────────────────────────────────────────────
-DB_HOST     = "localhost"
-DB_PORT     = 3306
-DB_USER     = "root"
-DB_PASSWORD = "Kaamna!123321"   # ← update this
-DB_NAME     = "shyaway_db"
+DB_HOST     = st.secrets["DB_HOST"]
+DB_PORT     = st.secrets["DB_PORT"]
+DB_USER     = st.secrets["DB_USER"]
+DB_PASSWORD = st.secrets["DB_PASSWORD"]
+DB_NAME     = st.secrets["DB_NAME"]
 DB_TABLE    = "visitor_small"
 
 @st.cache_data
