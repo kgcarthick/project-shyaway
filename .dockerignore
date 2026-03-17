@@ -1,0 +1,10 @@
+.git
+.github
+__pycache__
+*.pyc
+*.pkl
+*.ipynb
+session_features.csv
+feature_importance.png
+mysql.txt
+k8s/

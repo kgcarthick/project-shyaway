@@ -1,0 +1,6 @@
+mysql -u root -p 
+Kaamna!123321
+
+mysql -u root -p -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'Kaamna!123321'; FLUSH PRIVILEGES;"
+
+mysqladmin -u root -p password "Kaamna!123321"

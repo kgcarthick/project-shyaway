@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shyaway-dashboard
+  labels:
+    app: shyaway-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shyaway-dashboard
+  template:
+    metadata:
+      labels:
+        app: shyaway-dashboard
+    spec:
+      containers:
+        - name: shyaway-dashboard
+          image: shyaway-dashboard:local   # built directly into minikube docker daemon
+          imagePullPolicy: Never           # never pull from registry — use local image
+          ports:
+            - containerPort: 8501
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 10
+            periodSeconds: 5

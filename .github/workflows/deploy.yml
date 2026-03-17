@@ -1,0 +1,76 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ── Job 1: Build Docker image and push to ghcr.io ──────────────────────────
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  # ── Job 2: Deploy to Minikube via self-hosted runner on your Windows PC ─────
+  deploy:
+    runs-on: self-hosted          # your Windows machine with minikube + kubectl
+    needs: build-and-push         # waits for image to be pushed first
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to ghcr.io (pull updated image into Minikube)
+        run: |
+          minikube docker-env | Invoke-Expression
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Pull latest image into Minikube daemon
+        run: |
+          minikube docker-env | Invoke-Expression
+          docker pull ghcr.io/${{ env.IMAGE_NAME }}:latest
+          docker tag  ghcr.io/${{ env.IMAGE_NAME }}:latest shyaway-dashboard:local
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/deployment-local.yaml
+          kubectl apply -f k8s/service-nodeport.yaml
+
+      - name: Rollout restart (zero-downtime redeploy)
+        run: |
+          kubectl rollout restart deployment/shyaway-dashboard
+          kubectl rollout status  deployment/shyaway-dashboard --timeout=120s
+
+      - name: Show running pods
+        run: kubectl get pods -l app=shyaway-dashboard -o wide
