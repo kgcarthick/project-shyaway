@@ -48,14 +48,14 @@ jobs:
       packages: read
     defaults:
       run:
-        shell: powershell         # force every step to use PowerShell
+        shell: pwsh          # PowerShell Core — works on Windows self-hosted runners
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Start Minikube if not running
-        shell: powershell
+        shell: pwsh
         run: |
           $status = minikube status --format='{{.Host}}' 2>$null
           if ($status -ne "Running") {
@@ -65,30 +65,30 @@ jobs:
           }
 
       - name: Log in to ghcr.io inside Minikube daemon
-        shell: powershell
+        shell: pwsh
         run: |
           & minikube -p minikube docker-env --shell powershell | Invoke-Expression
           Write-Output "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Pull latest image into Minikube daemon
-        shell: powershell
+        shell: pwsh
         run: |
           & minikube -p minikube docker-env --shell powershell | Invoke-Expression
           docker pull ghcr.io/${{ env.IMAGE_NAME }}:latest
           docker tag  ghcr.io/${{ env.IMAGE_NAME }}:latest shyaway-dashboard:local
 
       - name: Apply Kubernetes manifests
-        shell: powershell
+        shell: pwsh
         run: |
           kubectl apply -f k8s/deployment-local.yaml
           kubectl apply -f k8s/service-nodeport.yaml
 
       - name: Rollout restart (zero-downtime redeploy)
-        shell: powershell
+        shell: pwsh
         run: |
           kubectl rollout restart deployment/shyaway-dashboard
           kubectl rollout status  deployment/shyaway-dashboard --timeout=120s
 
       - name: Show running pods
-        shell: powershell
+        shell: pwsh
         run: kubectl get pods -l app=shyaway-dashboard -o wide
