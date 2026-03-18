@@ -13,9 +13,9 @@ spec:
     metadata:
       labels:
         app: shyaway-dashboard
+    spec:
       imagePullSecrets:
         - name: ghcr-secret
-    spec:
       containers:
         - name: shyaway-dashboard
           image: ghcr.io/kgcarthick/project-shyaway:latest
