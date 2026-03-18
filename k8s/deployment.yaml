@@ -13,38 +13,15 @@ spec:
     metadata:
       labels:
         app: shyaway-dashboard
+      imagePullSecrets:
+        - name: ghcr-secret
     spec:
       containers:
         - name: shyaway-dashboard
           image: ghcr.io/kgcarthick/project-shyaway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8501
-          env:
-            - name: DB_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: shyaway-secrets
-                  key: DB_HOST
-            - name: DB_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: shyaway-secrets
-                  key: DB_PORT
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: shyaway-secrets
-                  key: DB_USER
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: shyaway-secrets
-                  key: DB_PASSWORD
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: shyaway-secrets
-                  key: DB_NAME
           resources:
             requests:
               memory: "256Mi"
